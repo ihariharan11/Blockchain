@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { fitnessRewardsABI } from "../FitnessRewardsABI"; // Import ABI
 import Navbar from "./NavBar"; 
 
-const contractAddress = "0x326c2BE8BBd1907113657528C8bC584e659C3c95"; // Replace with your contract address
+const contractAddress = "0x28f5FE7d6857e49Ff563be5BC82Bb79ACe1F1B7d"; // Replace with your contract address
 
 const isValidEthereumAddress = (address) => {
   return (
@@ -27,22 +27,18 @@ const App = () => {
     const init = async () => {
       if (window.ethereum) {
         try {
-          const web3Provider = new ethers.providers.Web3Provider(
-            window.ethereum
-          );
-          const contract = new ethers.Contract(
-            contractAddress,
-            fitnessRewardsABI,
-            web3Provider
-          );
-
+          // Request account access
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+  
+          const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = web3Provider.getSigner();
+          const contract = new ethers.Contract(contractAddress, fitnessRewardsABI, signer);
+  
           setProvider(web3Provider);
           setContract(contract);
         } catch (error) {
           console.error("Error initializing provider:", error);
-          alert(
-            "Error initializing Ethereum provider. Please check your MetaMask setup."
-          );
+          alert("Error initializing Ethereum provider. Please check your MetaMask setup.");
         }
       } else {
         alert("Please install MetaMask!");
@@ -50,20 +46,21 @@ const App = () => {
     };
     init();
   }, []);
-
+ 
   const showRewards = async () => {
     if (contract && selectedAddress) {
       try {
         // Check if selected address is a valid Ethereum address
         if (isValidEthereumAddress(selectedAddress)) {
+          // Fetch rewards for the selected address
           const userRewards = await contract.rewards(selectedAddress);
           setRewards(userRewards.toString());
-
-          // Check if the selected address is the owner
-          const owner = await contract.owner();
-          setIsOwner(selectedAddress.toLowerCase() === owner.toLowerCase());
+  
+          // Check if the selected address is the admin
+          const admin = await contract.admin();
+          setIsOwner(selectedAddress.toLowerCase() === admin.toLowerCase());
           setShowAssignRewards(
-            selectedAddress.toLowerCase() === owner.toLowerCase()
+            selectedAddress.toLowerCase() === admin.toLowerCase()
           );
         } else {
           alert("Invalid Ethereum address");
@@ -73,6 +70,12 @@ const App = () => {
       }
     }
   };
+  
+
+  
+  
+  
+  
 
   const assignRewards = async () => {
     if (contract && isOwner && isValidEthereumAddress(userAddress)) {
@@ -80,7 +83,8 @@ const App = () => {
         const signer = provider.getSigner();
         console.log("Signer address:", await signer.getAddress()); // Debugging line
         const contractWithSigner = contract.connect(signer);
-        const tx = await contractWithSigner.assignRewards(userAddress, amount);
+        // Use addRewardPoints instead of assignRewards
+        const tx = await contractWithSigner.addRewardPoints(userAddress, amount);
         console.log("Transaction:", tx); // Debugging line
         await tx.wait();
         alert(`Rewards assigned to ${userAddress}`);
@@ -98,6 +102,7 @@ const App = () => {
       }
     }
   };
+  
 
   return (
  
