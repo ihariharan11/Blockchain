@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { fitnessRewardsABI } from "../FitnessRewardsABI"; // Import ABI
 import Navbar from "./NavBar"; 
 
-const contractAddress = "0x28f5FE7d6857e49Ff563be5BC82Bb79ACe1F1B7d"; // Replace with your contract address
+const contractAddress = "0x4d8E90a0B78bFEc8110B3fc80481D721b6C89aAF"; // Replace with your contract address
 
 const isValidEthereumAddress = (address) => {
   return (
